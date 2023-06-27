@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table border="1" align="center">
+    <tr>
+        <th style="font-size: 50px">id</th>
+        <th style="font-size: 50px">name</th>
+        <th style="font-size: 50px">age</th>
+        <th style="font-size: 50px">email</th>
+    </tr>
+    <tr>
+        <td th:text="${user.id}" style="text-align: center; font-size: 25px"></td>
+        <td th:text="${user.name}" style="text-align: center; font-size: 25px"></td>
+        <td th:text="${user.age}" style="text-align: center; font-size: 25px"></td>
+        <td th:text="${user.email}" style="text-align: center; font-size: 25px"></td>
+    </tr>
+</table>
+</body>
+</html>

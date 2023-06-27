@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <style>
+    .gradient-button {
+      text-decoration: none;
+      display: inline-block;
+      color: white;
+      padding: 20px 30px;
+      margin: 10px 20px;
+      border-radius: 10px;
+      font-family: 'Montserrat', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background-image: linear-gradient(to right, #9EEFE1 0%, #4830F0 51%, #9EEFE1 100%);
+      background-size: 200% auto;
+      box-shadow: 0 0 20px rgba(0, 0, 0, .1);
+      transition: .5s;
+    }
+    .gradient-button:hover {
+      background-position: right center;
+    }
+    .floating-button {
+      text-decoration: none;
+      display: inline-block;
+      width: 240px;
+      height: 90px;
+      line-height: 90px;
+      border-radius: 90px;
+      margin: 20px 40px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 22px;
+      text-transform: uppercase;
+      text-align: center;
+      letter-spacing: 6px;
+      font-weight: 1200;
+      color: #524f4e;
+      background: white;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, .1);
+      transition: .3s;
+    }
+    .floating-button:hover {
+      background: #2EE59D;
+      box-shadow: 0 15px 20px rgba(46, 229, 157, .4);
+      color: white;
+      transform: translateY(-7px);
+    }
+  </style>
+  <meta charset="UTF-8">
+  <title>Up date</title>
+</head>
+<body style="background-color: blueviolet">
+<div style="background-color: #FFC0CB; text-align: center">
+  <h1 style="font-size: 60px; color: #1b2631; text-align: center">Up date User</h1>
+  <form  th:method="PATCH" th:action="@{/admin/update}" th:object="${user}">
+    <div style="text-align: center">
+      <input type="hidden" name="id" th:value="${user.getId()}">
+      <label th:for="name" style="font-size: 50px">Name</label>
+      <input type="text" name="name" th:id="name" th:value="${user.getName()}">
+      <div style="color: red" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Error name</div>
+      <br/>
+      <label th:for="age" style="font-size: 50px">Age</label>
+      <input type="number" min="1" max="100" required name="age" th:id="age" th:value="${user.getAge()}">
+      <div style="color: red" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Error age</div>
+      <br/>
+      <label th:for="email" style="font-size: 50px">Email</label>
+      <input type="text" name="email" th:id="email" th:value="${user.getEmail()}"><br/>
+      <div style="color: red" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error email</div>
+    </div>
+    <button type="submit" class="gradient-button">Up Date</button>
+  </form>
+  <br/>
+</div>
+<div style="background-color: #1b2631; text-align: center">
+  <form th:action="@{'/admin/AllUsers'}">
+    <button type="submit" class="floating-button ">Go back</button>
+  </form>
+</div>
+<form th:action="@{/logout}" th:method="POST">
+  <input type="submit" value="logout">
+</form>
+</body>
+</html>
