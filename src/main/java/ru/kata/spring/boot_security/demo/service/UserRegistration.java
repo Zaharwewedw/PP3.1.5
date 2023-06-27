@@ -10,8 +10,6 @@ import ru.kata.spring.boot_security.demo.dao.UserDao;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 
-
-
 @Service
 public class UserRegistration {
 

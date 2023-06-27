@@ -25,12 +25,6 @@ public class UserServiceImp implements UserService {
 
     @Override
     @Transactional
-    public void saveUser(User user) {
-        userDaoImp.saveUser(user);
-    }
-
-    @Override
-    @Transactional
     public void deleteUser(Long id) {
         userDaoImp.deleteUser(id);
     }
@@ -46,6 +40,5 @@ public class UserServiceImp implements UserService {
     public User getByIdUser(Long id) {
         return userDaoImp.getByIdUser(id);
     }
-
 
 }

@@ -66,6 +66,7 @@
       <label th:for="email" style="font-size: 50px">Email</label>
       <input type="text" name="email" th:id="email" th:value="${user.getEmail()}"><br/>
       <div style="color: red" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error email</div>
+
     </div>
     <button type="submit" class="gradient-button">Up Date</button>
   </form>
