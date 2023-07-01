@@ -8,7 +8,7 @@ import ru.kata.spring.boot_security.demo.model.User;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 public class UserDetailsImp implements UserDetails {
     private final User user;
@@ -19,7 +19,7 @@ public class UserDetailsImp implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<Role> roles = user.getRoleSet();
+        Set<Role> roles = user.getRoleSet();
         String roleUser = "ROLE_USER";
         for (Role role : roles) {
             if (role.getAuthority().equals("ROLE_ADMIN")) {

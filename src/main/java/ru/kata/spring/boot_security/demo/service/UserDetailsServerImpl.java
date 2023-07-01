@@ -22,6 +22,10 @@ public class UserDetailsServerImpl implements UserDetailsService {
         Optional<User> user = repositoryUser.getAllByUsNa(username);
         return user.get();
     }
+
+    public User getUserPrincipalByUsername(String username) {
+        return  repositoryUser.getAllByUsNa(username).get();
+    }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = repositoryUser.getAllByUsNa(username);

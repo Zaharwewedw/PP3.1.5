@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### logs ###
+log4j.properties
+logs.log

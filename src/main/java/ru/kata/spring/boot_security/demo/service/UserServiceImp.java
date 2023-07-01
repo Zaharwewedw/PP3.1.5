@@ -32,6 +32,7 @@ public class UserServiceImp implements UserService {
     @Override
     @Transactional
     public void upDateUser(User user) {
+        System.out.println(user.getRoleSet());
         userDaoImp.upDateUser(user);
     }
 

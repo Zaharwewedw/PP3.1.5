@@ -2,8 +2,8 @@ package ru.kata.spring.boot_security.demo.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table
@@ -24,25 +24,30 @@ public class  User {
     @Pattern(regexp = "^[a-z0-9_-]{3,15}$", message = "Invalid username")
     private String usNa;
 
+
     @Size(min = 4, message = "The allowed password characters are at least 4")
     private String pass;
 
     @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles")
-    private List<Role> roleSet = new ArrayList<>();
+    private Set<Role> roleSet = new HashSet<>();
 
     public User() {
 
     }
 
-    public User(String name, int age, String email, List<Role> roleSet) {
+    public User(String name, int age, String email, Set<Role> roleSet) {
         this.name = name;
         this.age = age;
         this.email = email;
         this.roleSet = roleSet;
     }
 
-    public List<Role> getRoleSet() {
+    public void setRoleSet(Set<Role> roleSet) {
+        this.roleSet = roleSet;
+    }
+
+    public Set<Role> getRoleSet() {
         return roleSet;
     }
 
@@ -96,6 +101,29 @@ public class  User {
 
     public Long getId() {
         return this.id;
+    }
+
+    public String toStringHeader() {
+        List<String> roleNames = roleSet.stream().map(a -> {
+            if (a.getRoleUser().equals("ROLE_ADMIN")) {
+                return "ADMIN";
+            }  else {
+                return "USER";
+            }
+        }
+        ).sorted().collect(Collectors.toList());
+        String rolesString = String.join(", ", roleNames);
+        return String.format("%s.", rolesString);
+    }
+
+    public String getAdmin() {
+        String dost = "NO ACTIVE";
+        for (Role role : getRoleSet()) {
+            if (role.getRoleUser().equals("ROLE_ADMIN")) {
+                return "ACTIVE";
+            }
+        }
+        return dost;
     }
 
     @Override

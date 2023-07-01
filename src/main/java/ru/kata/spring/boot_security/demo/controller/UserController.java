@@ -22,10 +22,13 @@ public class UserController {
     private final UserDetailsServerImpl userRegistration;
     private final UserServiceImp userServiceImp;
 
+    private final UserDetailsServerImpl userDetailsServer;
+
     @Autowired
-    public UserController(UserDetailsServerImpl userRegistration, UserServiceImp userServiceImp) {
+    public UserController(UserDetailsServerImpl userRegistration, UserServiceImp userServiceImp, UserDetailsServerImpl userDetailsServer) {
         this.userRegistration = userRegistration;
         this.userServiceImp = userServiceImp;
+        this.userDetailsServer = userDetailsServer;
     }
 
     @GetMapping("/user/{id}")
@@ -49,10 +52,10 @@ public class UserController {
                 }
             }
         }
-
+        User userPrincipal = userDetailsServer.getUserPrincipalByUsername(principal.getName());
         User user = userServiceImp.getByIdUser(id);
 
-        model.addAttribute("user", user);
+        model.addAttribute("user", user).addAttribute("userPrincipal", userPrincipal);
         return "users/profile";
     }
 }

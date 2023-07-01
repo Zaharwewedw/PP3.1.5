@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class SpringBootSecurityDemoApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void testLineExecutionTime() {
 	}
 
 }
