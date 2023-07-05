@@ -43,7 +43,7 @@ public class  User {
     @Size(min = 4, message = "The allowed password characters are at least 4")
     private String pass;
 
-    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @ManyToMany
     @JoinTable(name = "users_roles")
     private Set<Role> roleSet = new HashSet<>();
 
@@ -147,4 +147,5 @@ public class  User {
                 "  age = " + age +
                 "  email = " + email + "   ";
     }
+
 }

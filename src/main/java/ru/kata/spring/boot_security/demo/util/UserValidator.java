@@ -33,7 +33,7 @@ public class UserValidator implements Validator {
             return;
         }
 
-        errors.rejectValue("usNa", "", "человек с таким именем существует");
+        errors.rejectValue("username", "", "человек с таким именем существует");
     }
 }
 

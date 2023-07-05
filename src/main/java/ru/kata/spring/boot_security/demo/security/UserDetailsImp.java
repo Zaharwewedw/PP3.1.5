@@ -1,27 +1,28 @@
 package ru.kata.spring.boot_security.demo.security;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.dao.RepositoryRole;
+import ru.kata.spring.boot_security.demo.dao.RepositoryUser;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
+
+import java.util.*;
 
 
 public class UserDetailsImp implements UserDetails {
     private final User user;
+    private final RepositoryUser repositoryUser;
 
-    public UserDetailsImp(User user) {
+    public UserDetailsImp(User user, RepositoryUser repositoryUser) {
         this.user = user;
+        this.repositoryUser = repositoryUser;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Set<Role> roles = user.getRoleSet();
+
+        Optional<User> optionalUser = repositoryUser.findByUsernameWithRoles(user.getUsername());
+        Set<Role> roles = optionalUser.map(User::getRoleSet).orElse(new HashSet<>());
         return new ArrayList<>(roles);
     }
 
