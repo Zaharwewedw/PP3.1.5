@@ -68,7 +68,7 @@
                     <tr th:each="user : ${users}">
                       <td th:text="${user.getId()}">id</td>
                       <td th:text="${user.name}">name</td>
-                      <td th:text="${user.usNa}">surname</td>
+                      <td th:text="${user.username}">surname</td>
                       <td th:text="${user.age}">age</td>
                       <td th:text="${user.email}">email</td>
                       <td th:text="${user.toStringHeader()}">roles</td>
@@ -102,9 +102,9 @@
                                        th:value="${user.name}"/>
                                 <br>
                                 <label for="surname0"><b>Surname</b></label>
-                                <input th:name="usNa" th:type="text"
+                                <input th:name="username" th:type="text"
                                        class="form-control" id="surname0"
-                                       th:value="${user.usNa}"/>
+                                       th:value="${user.username}"/>
                                 <br>
                                 <label for="age0"><b>Age</b></label>
                                 <input th:name="age" th:type="number"
@@ -164,9 +164,9 @@
                                        id="name1" th:value="${user.name}" disabled/>
                                 <br>
                                 <label for="surname1"><b>Surname</b></label>
-                                <input th:name="usNa" th:type="text"
+                                <input th:name="username" th:type="text"
                                        class="form-control" id="surname1"
-                                       th:value="${user.usNa}" disabled/>
+                                       th:value="${user.username}" disabled/>
                                 <br>
                                 <label for="age1"><b>Age</b></label>
                                 <input th:name="age" th:type="number"

@@ -1,8 +1,23 @@
 package ru.kata.spring.boot_security.demo.model;
 
-import javax.persistence.*;
-import javax.validation.constraints.*;
-import java.util.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.GenerationType;
+import javax.persistence.ManyToMany;
+import javax.persistence.JoinTable;
+import javax.persistence.CascadeType;
+import javax.persistence.FetchType;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Pattern;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
@@ -22,7 +37,7 @@ public class  User {
     private Long id;
 
     @Pattern(regexp = "^[a-z0-9_-]{3,15}$", message = "Invalid username")
-    private String usNa;
+    private String username;
 
 
     @Size(min = 4, message = "The allowed password characters are at least 4")
@@ -55,12 +70,12 @@ public class  User {
         this.roleSet.add(roleSet);
     }
 
-    public String getUsNa() {
-        return usNa;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUsNa(String usNa) {
-        this.usNa = usNa;
+    public void setUsername(String usNa) {
+        this.username = usNa;
     }
 
     public String getPass() {

@@ -19,16 +19,16 @@ public class UserDetailsServerImpl implements UserDetailsService {
         this.repositoryUser = repositoryUser;
     }
     public User getUserByUsernameController(String username) {
-        Optional<User> user = repositoryUser.getAllByUsNa(username);
+        Optional<User> user = repositoryUser.getAllByUsername(username);
         return user.get();
     }
 
     public User getUserPrincipalByUsername(String username) {
-        return  repositoryUser.getAllByUsNa(username).get();
+        return  repositoryUser.getAllByUsername(username).get();
     }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = repositoryUser.getAllByUsNa(username);
+        Optional<User> user = repositoryUser.getAllByUsername(username);
 
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User not found!");

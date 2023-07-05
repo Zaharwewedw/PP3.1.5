@@ -33,7 +33,7 @@ public class UserRegistration {
             User user = new User();
             user.setAge(22);
             user.setPass("akademy");
-            user.setUsNa("akademy");
+            user.setUsername("akademy");
             user.setEmail("kata@gmail.com");
             user.setName("Person");
             user.setRoleSet(repositoryRole.save(new Role("ROLE_ADMIN")));
