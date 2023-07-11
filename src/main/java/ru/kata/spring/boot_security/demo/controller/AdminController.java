@@ -1,11 +1,15 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+import ru.kata.spring.boot_security.demo.dao.RepositoryRole;
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserDetailsServerImpl;
 import ru.kata.spring.boot_security.demo.service.UserRegistration;
@@ -15,78 +19,109 @@ import ru.kata.spring.boot_security.demo.util.UserValidator;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+    private final RepositoryRole repositoryRole;
     private final UserRegistration userRegistration;
     private final UserValidator userValidator;
-    private UserService userService;
+    private final UserService userService;
     private final UserDetailsServerImpl userDetailsServer;
 
     @Autowired
-    public AdminController(UserRegistration userRegistration, UserValidator userValidator, UserDetailsServerImpl userDetailsServer) {
+    public AdminController(RepositoryRole repositoryRole, UserRegistration userRegistration, UserValidator userValidator, UserService userService, UserDetailsServerImpl userDetailsServer) {
+        this.repositoryRole = repositoryRole;
         this.userRegistration = userRegistration;
         this.userValidator = userValidator;
+        this.userService = userService;
         this.userDetailsServer = userDetailsServer;
     }
-
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    @GetMapping(value = "/AllUsers")
+    public String allUsers() {
+        return "admin/AllUsers";
     }
 
-    @GetMapping(value = "/AllUsers")
-    public ModelAndView allUsers(Principal principal) {
+    @ResponseBody
+    @GetMapping(value = "/AllUsersRest")
+    public ResponseEntity<List<User>> allUsers(Principal principal) {
         User userPrincipal = userDetailsServer.getUserPrincipalByUsername(principal.getName());
         List<User> users = userService.getAllUsers();
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("admin/AllUsers");
-        modelAndView.addObject("users", users)
-                .addObject("Email", userPrincipal.getEmail())
-                .addObject("Roles", userPrincipal.toStringHeader());
-        return modelAndView;
+        users.add(userPrincipal);
+
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    @PutMapping("/update/{id}")
-    public String updatePage(@ModelAttribute @Valid User user,
-                                   BindingResult bindingResult) {
-        if (bindingResult.hasErrors())
-            return "admin/AllUsers";
+    @ResponseBody
+    @PutMapping("/update")
+    @Validated
+    public ResponseEntity<Object> updatePage(@Valid @RequestBody User user, BindingResult result) {
 
-        userService.upDateUser(user);
+        if (result.hasErrors()) {
+            List<String> errors = result.getFieldErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(errors);
+        }
 
-        return "redirect:/admin/AllUsers";
+        User existingUser = userService.getByIdUser(user.getId());
+
+        existingUser.setAge(user.getAge());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setPass(user.getPass());
+        existingUser.setUsername(user.getUsername());
+        existingUser.setName(user.getName());
+
+        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+        existingUser.getRoleSet().clear();
+        existingUser.addRole(role);
+
+        userService.upDateUser(existingUser);
+
+        return ResponseEntity.ok("Пользователь успешно обновлен");
+
     }
 
+    @ResponseBody
     @DeleteMapping("/delete/{id}")
-    public String deleteUser(@PathVariable long id) {
+    public ResponseEntity<String> deleteUser(@PathVariable long id) {
         userService.deleteUser(id);
-        return "redirect:/admin/AllUsers";
+        return ResponseEntity.ok("Пользователь успешно удален");
     }
 
     @GetMapping("/registration")
-    public String registrationNewUser(@ModelAttribute("user") User user,
-                                      Model model,
-                                      Principal principal) {
-
-        User userPrincipal = userDetailsServer.getUserPrincipalByUsername(principal.getName());
-        model.addAttribute("Email", userPrincipal.getEmail());
-        model.addAttribute("Roles", userPrincipal.toStringHeader());
-
+    public String registrationNewUser(){
         return "/admin/registration";
     }
 
+    @ResponseBody
+    @GetMapping("/registrationRest")
+    public ResponseEntity<User> registrationNewUser(Principal principal) {
+        User userPrincipal = userDetailsServer.getUserPrincipalByUsername(principal.getName());
+        return new ResponseEntity<>(userPrincipal, HttpStatus.OK);
+    }
+
+
     @PostMapping("/registration")
-    public String performRegistrationNewUser(@ModelAttribute("user") @Valid User user,
+    public ResponseEntity<String> performRegistrationNewUser(@Valid @RequestBody User user,
                                              BindingResult bindingResult) {
         userValidator.validate(user, bindingResult);
 
-        if (bindingResult.hasErrors())
-            return "/admin/registration";
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body("Некорректные данные пользователя");
+        }
+        User user1 = new User();
+        user1.setAge(user.getAge());
+        user1.setEmail(user.getEmail());
+        user1.setPass(user.getPass());
+        user1.setUsername(user.getUsername());
+        user1.setName(user.getName());
 
-        userRegistration.register(user);
-
-        return "redirect:/admin/AllUsers";
+        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+        user1.getRoleSet().clear();
+        user1.addRole(role);
+        userRegistration.register(user1);
+        allUsers();
+        return ResponseEntity.ok("Пользователь успешно создан");
     }
 }

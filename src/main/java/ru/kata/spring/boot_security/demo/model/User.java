@@ -1,14 +1,6 @@
 package ru.kata.spring.boot_security.demo.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.GenerationType;
-import javax.persistence.ManyToMany;
-import javax.persistence.JoinTable;
-import javax.persistence.CascadeType;
-import javax.persistence.FetchType;
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
@@ -51,23 +43,27 @@ public class  User {
 
     }
 
-    public User(String name, int age, String email, Set<Role> roleSet) {
+    public User(String name, int age, String email, Set<Role> roleSet, String pass, String username) {
         this.name = name;
         this.age = age;
         this.email = email;
         this.roleSet = roleSet;
+        this.pass = pass;
+        this.username = username;
+    }
+
+
+
+    public Set<Role> getRoleSet() {
+        return roleSet;
     }
 
     public void setRoleSet(Set<Role> roleSet) {
         this.roleSet = roleSet;
     }
 
-    public Set<Role> getRoleSet() {
-        return roleSet;
-    }
-
-    public void setRoleSet(Role roleSet) {
-        this.roleSet.add(roleSet);
+    public void addRole(Role role) {
+        this.roleSet.add(role);
     }
 
     public String getUsername() {

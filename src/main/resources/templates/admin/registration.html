@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -11,23 +11,25 @@
     <nav class="navbar navbar-dark bg-dark">
       <div class="container-fluid">
         <p class="navbar-brand text-white">
-          <b><span class="align-middle" th:text="${Email}"></span></b>
+          <b><span class="align-middle" id="email"></span></b>
           <span class="align-middle">with roles:</span>
-          <span class="align-middle" th:text="${Roles}"></span>
+          <span class="align-middle" id="role"></span>
         </p>
-        <form th:action="@{/logout}" method="post">
+        <form action="/logout" method="post">
           <button type="submit" class="btn btn-dark text-secondary">Logout</button>
         </form>
       </div>
     </nav>
   </header>
+
+
   <section>
     <div class="container-fluid">
       <div class="row">
         <div class="col-2 p-0">
           <div class="nav flex-column nav-pills pt-4" id="v-pills-tab" role="tablist" aria-orientation="vertical">
             <a class="nav-link active" aria-controls="v-pills-home" aria-selected="true">Admin</a>
-            <a class="nav-item nav-link" th:href="@{/users/user/0}">User</a>
+            <a class="nav-item nav-link" href="/user/0">User</a>
           </div>
         </div>
         <div class="col-10 px-0">
@@ -35,7 +37,7 @@
             <h1 class="m-3 fw-bold">Admin panel</h1>
             <div class="tab-content" id="tabContent">
               <ul class="nav nav-tabs">
-                <a class="nav-link" data-toggle="tab" href="AllUsers">Users Table</a>
+                <a class="nav-link" id="btnRegistration" href="/admin/AllUsers">Users Table</a>
                 <a class="nav-link active" data-toggle="tab">New User</a>
               </ul>
               <div class="card">
@@ -46,40 +48,30 @@
                 </div>
               </div>
               <div class="col-md bg-white border">
-                <form align="center" class="offset-md-4 col-md-3 mt-4 mb-4"
-                      th:align="center"
-                      th:action="@{/admin/registration}"
-                      th:object="${user}"
-                      method="POST">
-                  <label for="name"><b>Name</b></label>
-                  <input th:name="name" th:type="text" class="form-control" id="name" required/>
-                  <div style="color: red" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name Error</div>
+                <form align="center" class="offset-md-4 col-md-3 mt-4 mb-4">
+                  <label for="namePost"><b>Name</b></label>
+                  <input name="name" type="text" class="form-control" id="namePost" required/>
                   <br>
-                  <label for="surname"><b>Surname</b></label>
-                  <input th:name="username" th:type="text" class="form-control" id="surname" required/>
-                  <div style="color: red" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username Error</div>
+                  <label for="surnamePost"><b>Surname</b></label>
+                  <input name="username" type="text" class="form-control" id="surnamePost" required/>
                   <br>
-                  <label for="age"><b>Age</b></label>
-                  <input th:name="age" th:type="number" class="form-control" id="age"/>
-                  <div style="color: red" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Age Error</div>
+                  <label for="agePost"><b>Age</b></label>
+                  <input name="age" type="number" class="form-control" id="agePost"/>
                   <br>
-                  <label for="email"><b>Email</b></label>
-                  <input th:name="email" th:type="text" class="form-control" id="email" required/>
-                  <div style="color: red" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email Error</div>
+                  <label for="emailPost"><b>Email</b></label>
+                  <input name="email" type="text" class="form-control" id="emailPost" required/>
                   <br>
-                  <label for="password"><b>Password</b></label>
-                  <input th:name="pass" th:field="*{pass}" th:type="password" class="form-control"
-                         id="password"/>
-                  <div style="color: red" th:if="${#fields.hasErrors('pass')}" th:errors="*{pass}">Password Error</div>
+                  <label for="passwordPost"><b>Password</b></label>
+                  <input name="pass"  type="password" class="form-control"
+                         id="passwordPost"/>
                   <br>
-                  <label for="roles"><b>Role</b></label>
-                  <select multiple class="form-control form-control-sm" id="roles" name="roleSet" required="required">
+                  <label for="rolesPost"><b>Role</b></label>
+                  <select multiple class="form-control form-control-sm" id="rolesPost" name="roleSet" required="required">
                     <option selected="selected" value="2">USER</option>
                     <option value="1">ADMIN</option>
                   </select>
                   <br>
-                  <button th:type="submit" class="btn btn-success btn-lg" value="Add new user">Add new user
-                  </button>
+                  <button type="submit" class="btn btn-success btn-lg" id="putBtn" value="Add new user">Add new user</button>
                 </form>
               </div>
             </div>
@@ -88,8 +80,17 @@
       </div>
     </div>
   </section>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-          crossorigin="anonymous"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js"
+        integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2"
+        crossorigin="anonymous"></script>
+<script src="/js/registration.js"></script>
 </body>
 </html>

@@ -10,6 +10,8 @@ import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserRegistration {
@@ -35,8 +37,8 @@ public class UserRegistration {
             user.setUsername("akademy");
             user.setEmail("kata@gmail.com");
             user.setName("Person");
-            user.setRoleSet(repositoryRole.save(new Role("ROLE_ADMIN")));
-            user.setRoleSet(repositoryRole.save(new Role("ROLE_USER")));
+            user.addRole(repositoryRole.save(new Role("ROLE_ADMIN")));
+            user.addRole(repositoryRole.save(new Role("ROLE_USER")));
             user.setPass(passwordEncoder.encode(user.getPass()));
             repositoryUser.save(user);
         }
@@ -44,7 +46,20 @@ public class UserRegistration {
 
     @Transactional
     public void register(User user) {
-        user.setRoleSet(repositoryRole.findByRoleUser("ROLE_USER"));
+        System.out.println(user.getName() + " " + user.getPass() + " " + user.getUsername()
+                + " " + user.getRoleSet() + " " + user.getAge()+ " " + user.getEmail());
+        Role role = null;
+        if (!user.getRoleSet().isEmpty()) {
+            String authority = user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse("");
+            role = repositoryRole.findByRoleUser(authority);
+        }
+
+        if (role == null) {
+            role = new Role("ROLE_USER"); // Создаем новый объект "Role"
+            repositoryRole.save(role); // Сохраняем его в базе данных
+        }
+
+        user.addRole(role);
         user.setPass(passwordEncoder.encode(user.getPass()));
         repositoryUser.save(user);
     }
