@@ -174,10 +174,10 @@ async function editeUsersPut(id) {
                     const data = await response.json();
                     await allUser(data); // Обновить данные на фронтенде
                 } else if  (response.status >= 400) {
-                        const errorMessage = await response.json();
-                        openModalPut();
-                        document.getElementById('error').textContent = errorMessage.errorMessage;
-                        console.log(JSON.stringify(errorMessage));
+                    const errorMessage = await response.json();
+                    openModalPut();
+                    document.getElementById('error').textContent = errorMessage.errorMessage;
+                    console.log(JSON.stringify(errorMessage));
                 } else {
                     console.error('Ошибка создания пользователя');
                 }
@@ -188,15 +188,15 @@ async function editeUsersPut(id) {
             });
 
     }
-   }
-    async function editeUsersPutServer(id) {
-        const putBtn = document.getElementById('putBtn');
-        putBtn.addEventListener('click', async (event) => {
-            event.preventDefault();
-            editeUsersPut(id);
-            closeModalPut();
-        });
-    }
+}
+async function editeUsersPutServer(id) {
+    const putBtn = document.getElementById('putBtn');
+    putBtn.addEventListener('click', async (event) => {
+        event.preventDefault();
+        editeUsersPut(id);
+        closeModalPut();
+    });
+}
 
 async function deleteUser(userId) {
     try {

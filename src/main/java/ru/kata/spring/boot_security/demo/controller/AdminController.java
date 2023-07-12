@@ -7,11 +7,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.dao.RepositoryRole;
-import ru.kata.spring.boot_security.demo.errors_controles.CustomExceptionHandler;
 import ru.kata.spring.boot_security.demo.errors_controles.ErrorResponse;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
@@ -57,16 +54,31 @@ public class AdminController {
 
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
-
     @ResponseBody
     @PutMapping("/update")
-    @Validated
     public ResponseEntity<?> updatePage(@Valid @RequestBody User user, BindingResult result) {
 
         userValidator.validate(user, result);
-        User existingUser = userService.getByIdUser(user.getId());
-
         try {
+                userDetailsServer.loadUserByUsername(user.getUsername());
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(new ErrorResponse("Такой пользыватель уже зарегестрирован"));
+            } catch (UsernameNotFoundException ignored) {
+        }
+
+        if (result.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder();
+            for (ObjectError error : result.getAllErrors()) {
+                errorMessage.append(error.getDefaultMessage()).append("\n");
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(new ErrorResponse(errorMessage.toString()));
+        }
+
+            User existingUser = userService.getByIdUser(user.getId());
             existingUser.setAge(user.getAge());
             existingUser.setEmail(user.getEmail());
             existingUser.setPass(user.getPass());
@@ -80,17 +92,6 @@ public class AdminController {
             userService.upDateUser(existingUser);
 
             return ResponseEntity.ok("Пользователь успешно обновлен");
-        } catch (ConstraintViolationException e) {
-
-            StringBuilder errorMessage = new StringBuilder();
-            for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
-                errorMessage.append(violation.getMessage()).append("\n");
-            }
-
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(errorMessage.toString()));
-        }
     }
 
     @ResponseBody
@@ -152,25 +153,5 @@ public class AdminController {
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(errorMessage.toString()));
         }
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<CustomExceptionHandler> handleException(Exception exception) {
-        CustomExceptionHandler data = new CustomExceptionHandler();
-        data.setInfo(exception.getMessage());
-        System.out.println(data);
-
-        return new ResponseEntity<>(data, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseBody
-    public ResponseEntity<String> handleValidationException(MethodArgumentNotValidException ex) {
-        List<ObjectError> errors = ex.getBindingResult().getAllErrors();
-        String errorMessage = "";
-        for (ObjectError error : errors) {
-            errorMessage += error.getDefaultMessage();
-        }
-        return ResponseEntity.badRequest().body(errorMessage);
     }
 }

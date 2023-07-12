@@ -1,10 +1,13 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.dao.RepositoryUser;
 import ru.kata.spring.boot_security.demo.model.User;
 
+import javax.persistence.RollbackException;
 import java.util.List;
 
 @Service
