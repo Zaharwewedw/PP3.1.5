@@ -59,18 +59,13 @@ public class AdminController {
     public ResponseEntity<?> updatePage(@Valid @RequestBody User user, BindingResult result) {
 
         userValidator.validate(user, result);
-        try {
-                userDetailsServer.loadUserByUsername(user.getUsername());
-                return ResponseEntity
-                        .status(HttpStatus.BAD_REQUEST)
-                        .body(new ErrorResponse("Такой пользыватель уже зарегестрирован"));
-            } catch (UsernameNotFoundException ignored) {
-        }
 
         if (result.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
+            int cnt = 1;
             for (ObjectError error : result.getAllErrors()) {
-                errorMessage.append(error.getDefaultMessage()).append("\n");
+                errorMessage.append(cnt).append(") ").append(error.getDefaultMessage()).append("; ");
+                cnt++;
             }
 
             return ResponseEntity
@@ -78,20 +73,20 @@ public class AdminController {
                     .body(new ErrorResponse(errorMessage.toString()));
         }
 
-            User existingUser = userService.getByIdUser(user.getId());
-            existingUser.setAge(user.getAge());
-            existingUser.setEmail(user.getEmail());
-            existingUser.setPass(user.getPass());
-            existingUser.setUsername(user.getUsername());
-            existingUser.setName(user.getName());
+        User existingUser = userService.getByIdUser(user.getId());
+        existingUser.setAge(user.getAge());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setPass(user.getPass());
+        existingUser.setUsername(user.getUsername());
+        existingUser.setName(user.getName());
 
-            Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
-            existingUser.getRoleSet().clear();
-            existingUser.addRole(role);
+        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+        existingUser.getRoleSet().clear();
+        existingUser.addRole(role);
 
-            userService.upDateUser(existingUser);
+        userService.upDateUser(existingUser);
 
-            return ResponseEntity.ok("Пользователь успешно обновлен");
+        return ResponseEntity.ok("Пользователь успешно обновлен");
     }
 
     @ResponseBody
