@@ -159,38 +159,35 @@ async function editeUsersPut(id) {
         pass: document.getElementById('passwordPut').value,
         roleSet: role
     };
-
-    if (role.includes("ROLE_ADMIN")) {
-        console.log(role);
-    }
-    console.log(updatedUser.roleSet);
-
     await updateUser(updatedUser);
 
     async function updateUser(updatedUser) {
-        try {
-            const response = await fetch('/admin/update', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedUser),
+        fetch(`/admin/update`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedUser),
+        })
+            .then(async response => {
+                if (response.ok) {
+                    console.log('Пользователь обновлен');
+                    const response = await fetch('/admin/AllUsersRest');
+                    const data = await response.json();
+                    await allUser(data); // Обновить данные на фронтенде
+                } else if  (response.status >= 400) {
+                        const errorMessage = await response.json();
+                        openModalPut();
+                        document.getElementById('error').textContent = errorMessage.errorMessage;
+                        console.log(JSON.stringify(errorMessage));
+                } else {
+                    console.error('Ошибка создания пользователя');
+                }
+
+            })
+            .catch(error => {
+                console.error(error);
             });
 
-            if (response.ok) {
-                // Пользователь успешно обновлен
-                console.log('Пользователь обновлен');
-                const response = await fetch('/admin/AllUsersRest');
-                const data = await response.json();
-                await allUser(data); // Обновить данные на фронтенде
-            } else {
-                // Обработка ошибки, если запрос не был успешным
-                console.error('Ошибка обновления пользователя');
-            }
-        } catch (error) {
-            console.error(error);
-        }
     }
-
-
    }
     async function editeUsersPutServer(id) {
         const putBtn = document.getElementById('putBtn');
@@ -230,5 +227,4 @@ function deleteStatus(id){
         closeModal();
     });
 }
-
-getData();
+document.addEventListener("DOMContentLoaded", getData);

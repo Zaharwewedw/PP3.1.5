@@ -8,9 +8,7 @@ import javax.validation.constraints.Size;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Pattern;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Table
@@ -20,7 +18,7 @@ public class  User {
     private String name;
     @Min(value = 14, message = "Access to persons under 14 years of age is prohibited")
     @Max(value = 150, message = "The age is too great")
-    private int age;
+    private Integer age;
     @Email(message = "The email does not meet the requirements")
     @NotEmpty(message = "The email cannot be empty")
     private String email;
@@ -112,19 +110,6 @@ public class  User {
 
     public Long getId() {
         return this.id;
-    }
-
-    public String toStringHeader() {
-        List<String> roleNames = roleSet.stream().map(a -> {
-            if (a.getRoleUser().equals("ROLE_ADMIN")) {
-                return "ADMIN";
-            }  else {
-                return "USER";
-            }
-        }
-        ).sorted().collect(Collectors.toList());
-        String rolesString = String.join(", ", roleNames);
-        return String.format("%s.", rolesString);
     }
 
     public String getAdmin() {

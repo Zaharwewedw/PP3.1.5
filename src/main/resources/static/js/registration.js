@@ -41,11 +41,12 @@ async function userPost() {
     } else {
         role.push("ROLE_USER");
     }
-
+    const ageInput = document.getElementById('agePost').value;
+    const age = ageInput !== "" ? parseInt(ageInput) : 0;
     const addUser = {
         name: document.getElementById('namePost').value,
         username: document.getElementById('surnamePost').value,
-        age: document.getElementById('agePost').value,
+        age: age,
         email: document.getElementById('emailPost').value,
         pass: document.getElementById('passwordPost').value,
         roleSet: role
@@ -53,43 +54,40 @@ async function userPost() {
     if (role.includes("ROLE_ADMIN")) {
         console.log(role);
     }
-    console.log(addUser.roleSet);
+    console.log(addUser.roleSet.set);
 
     registrationUser(addUser);
 
-    function registrationUser(addUser) {
+    async function registrationUser(addUser) {
         fetch(`/admin/registration`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(addUser)
         })
-            .then(response => {
-
+            .then(async response => {
                 if (response.ok) {
                     console.log('Пользователь создан');
                     redirectToNewPage();
                 } else {
-                    console.error('Ошибка создания пользователя');
+                    if (response.status >= 400) {
+                        const errorMessage = await response.json();
+                        document.getElementById('error').textContent = errorMessage.errorMessage;
+                        console.log(JSON.stringify(errorMessage));
+                    } else {
+                        console.error('Ошибка создания пользователя');
+                    }
                 }
             })
             .catch(error => {
                 console.error(error);
             });
     }
-}
+    }
 const putBtn = document.getElementById('putBtn');
 putBtn.addEventListener('click', async (event) => {
     event.preventDefault();
     userPost();
 });
-
-function handleValidationErrors(errors) {
-    for (const field of Object.keys(errors)) {
-        const errorMessage = errors[field];
-        // Отобразить сообщение об ошибке рядом с полем формы
-        // или выполнить другую логику обработки ошибки
-    }
-}
 
 function redirectToNewPage() {
     window.location.replace("/admin/AllUsers");

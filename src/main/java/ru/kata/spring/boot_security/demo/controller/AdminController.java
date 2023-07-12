@@ -1,14 +1,18 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.dao.RepositoryRole;
+import ru.kata.spring.boot_security.demo.errors_controles.CustomExceptionHandler;
+import ru.kata.spring.boot_security.demo.errors_controles.ErrorResponse;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserDetailsServerImpl;
@@ -16,10 +20,11 @@ import ru.kata.spring.boot_security.demo.service.UserRegistration;
 import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.util.UserValidator;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -56,30 +61,36 @@ public class AdminController {
     @ResponseBody
     @PutMapping("/update")
     @Validated
-    public ResponseEntity<Object> updatePage(@Valid @RequestBody User user, BindingResult result) {
+    public ResponseEntity<?> updatePage(@Valid @RequestBody User user, BindingResult result) {
 
-        if (result.hasErrors()) {
-            List<String> errors = result.getFieldErrors().stream()
-                    .map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
-        }
-
+        userValidator.validate(user, result);
         User existingUser = userService.getByIdUser(user.getId());
 
-        existingUser.setAge(user.getAge());
-        existingUser.setEmail(user.getEmail());
-        existingUser.setPass(user.getPass());
-        existingUser.setUsername(user.getUsername());
-        existingUser.setName(user.getName());
+        try {
+            existingUser.setAge(user.getAge());
+            existingUser.setEmail(user.getEmail());
+            existingUser.setPass(user.getPass());
+            existingUser.setUsername(user.getUsername());
+            existingUser.setName(user.getName());
 
-        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
-        existingUser.getRoleSet().clear();
-        existingUser.addRole(role);
+            Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+            existingUser.getRoleSet().clear();
+            existingUser.addRole(role);
 
-        userService.upDateUser(existingUser);
+            userService.upDateUser(existingUser);
 
-        return ResponseEntity.ok("Пользователь успешно обновлен");
+            return ResponseEntity.ok("Пользователь успешно обновлен");
+        } catch (ConstraintViolationException e) {
 
+            StringBuilder errorMessage = new StringBuilder();
+            for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
+                errorMessage.append(violation.getMessage()).append("\n");
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(errorMessage.toString()));
+        }
     }
 
     @ResponseBody
@@ -103,25 +114,63 @@ public class AdminController {
 
 
     @PostMapping("/registration")
-    public ResponseEntity<String> performRegistrationNewUser(@Valid @RequestBody User user,
+    public ResponseEntity<?> performRegistrationNewUser(@Valid @RequestBody User user,
                                              BindingResult bindingResult) {
         userValidator.validate(user, bindingResult);
-
-        if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().body("Некорректные данные пользователя");
-        }
         User user1 = new User();
-        user1.setAge(user.getAge());
-        user1.setEmail(user.getEmail());
-        user1.setPass(user.getPass());
-        user1.setUsername(user.getUsername());
-        user1.setName(user.getName());
 
-        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
-        user1.getRoleSet().clear();
-        user1.addRole(role);
-        userRegistration.register(user1);
-        allUsers();
-        return ResponseEntity.ok("Пользователь успешно создан");
+        try {
+            userDetailsServer.loadUserByUsername(user.getUsername());
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Такой пользыватель уже зарегестрирован"));
+        } catch (UsernameNotFoundException ignored) {
+        }
+        try {
+            user1.setAge(user.getAge());
+            user1.setEmail(user.getEmail());
+            user1.setPass(user.getPass());
+            user1.setUsername(user.getUsername());
+            user1.setName(user.getName());
+
+            Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+            user1.getRoleSet().clear();
+            user1.addRole(role);
+            userRegistration.register(user1);
+            return ResponseEntity.ok("Пользователь успешно создан");
+
+        } catch (ConstraintViolationException e) {
+
+            StringBuilder errorMessage = new StringBuilder();
+            int cnt = 1;
+            for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
+                errorMessage.append(cnt).append(") ").append(violation.getMessage()).append("; ");
+                cnt++;
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(errorMessage.toString()));
+        }
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<CustomExceptionHandler> handleException(Exception exception) {
+        CustomExceptionHandler data = new CustomExceptionHandler();
+        data.setInfo(exception.getMessage());
+        System.out.println(data);
+
+        return new ResponseEntity<>(data, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseBody
+    public ResponseEntity<String> handleValidationException(MethodArgumentNotValidException ex) {
+        List<ObjectError> errors = ex.getBindingResult().getAllErrors();
+        String errorMessage = "";
+        for (ObjectError error : errors) {
+            errorMessage += error.getDefaultMessage();
+        }
+        return ResponseEntity.badRequest().body(errorMessage);
     }
 }

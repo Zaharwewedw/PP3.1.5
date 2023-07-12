@@ -40,12 +40,7 @@ fetch(`/user`)
             return `${rolesString}.`;
         }
 
-        try {
-            document.getElementById('jsonContainer').textContent = JSON.stringify(data.principal.email).replace(/"/g, "");
-        } catch (e) {
-            document.getElementById('jsonContainer').textContent = JSON.stringify(data.user.email).replace(/"/g, "");
-        }
-
+        document.getElementById('jsonContainer').textContent = JSON.stringify(data.principal.email).replace(/"/g, "");
         document.getElementById('rolesPrincipal').textContent = JSON.stringify(roles()).replace(/"/g, "");
 
 

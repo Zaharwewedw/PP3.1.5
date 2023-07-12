@@ -10,8 +10,6 @@ import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
-import java.util.Set;
 
 @Service
 public class UserRegistration {
