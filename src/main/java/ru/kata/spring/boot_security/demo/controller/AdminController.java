@@ -30,6 +30,7 @@ public class AdminController {
     private final UserRegistration userRegistration;
     private final UserValidator userValidator;
     private final UserService userService;
+    private byte cnt = 0;
     private final UserDetailsServerImpl userDetailsServer;
 
     @Autowired
@@ -58,6 +59,17 @@ public class AdminController {
     @PutMapping("/update")
     public ResponseEntity<?> updatePage(@Valid @RequestBody User user, BindingResult result) {
 
+
+        User user1 = new User();
+        System.out.println("-----------------------------------------------------------------");
+        System.out.println(user.getId() + ") name : " + user.getName() + ", email : " + user.getEmail() +
+                ", username : " + user.getUsername() + ", age : " + user.getAge() + ", pass : " + user.getPass());
+        try {
+            user1 = user;
+        } catch (Exception e) {
+
+        }
+
         userValidator.validate(user, result);
 
         if (result.hasErrors()) {
@@ -72,20 +84,26 @@ public class AdminController {
                     .status(HttpStatus.CONFLICT)
                     .body(new ErrorResponse(errorMessage.toString()));
         }
+        if (cnt == 0) {
+            cnt++;
+            System.out.println(user.getId());
+            System.out.println("1-----------------------------------------------------------------");
+            User existingUser = userService.getByIdUser(user.getId());
+            System.out.println(user.getId());
+            System.out.println("2-----------------------------------------------------------------");
+            existingUser.setAge(user.getAge());
+            existingUser.setEmail(user.getEmail());
+            existingUser.setPass(user.getPass());
+            existingUser.setUsername(user.getUsername());
+            existingUser.setName(user.getName());
 
-        User existingUser = userService.getByIdUser(user.getId());
-        existingUser.setAge(user.getAge());
-        existingUser.setEmail(user.getEmail());
-        existingUser.setPass(user.getPass());
-        existingUser.setUsername(user.getUsername());
-        existingUser.setName(user.getName());
+            Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+            existingUser.getRoleSet().clear();
+            existingUser.addRole(role);
 
-        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
-        existingUser.getRoleSet().clear();
-        existingUser.addRole(role);
-
-        userService.upDateUser(existingUser);
-
+            userService.upDateUser(existingUser);
+            cnt = 0;
+        }
         return ResponseEntity.ok("Пользователь успешно обновлен");
     }
 

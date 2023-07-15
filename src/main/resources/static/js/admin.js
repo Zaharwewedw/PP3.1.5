@@ -34,7 +34,7 @@ async function allUser(users) {
     let el = document.getElementById('users');
     let st = "";
     for (let i = 0; i < users.length - 1; i++ ) {
-        let deleteButtonId = `deleteButton${users[i].id}`; // Создаем уникальный идентификатор для каждой кнопки "Delete"
+        let deleteButtonId = `deleteButton${users[i].id}`;
         let editButtonId = `editButton${users[i].id}`;
         st += `
             <tr>
@@ -52,11 +52,13 @@ async function allUser(users) {
                 </td>
             </tr>`;
         el.innerHTML = st;
+
     }
+
     for (let i = 0; i < users.length - 1; i++ ) {
-        let editButtonId = `editButton${users[i].id}`;
-        const deleteButton = document.getElementById(editButtonId);
-        deleteButton.addEventListener("click", openModalPut);
+        let updateButtonId = `editButton${users[i].id}`;
+        const updateButton = document.getElementById(updateButtonId);
+        updateButton.addEventListener("click", () =>  {openModalPut()});
     }
 
     for (let i = 0; i < users.length - 1; i++ ) {
@@ -133,14 +135,8 @@ document.querySelector('.btn').addEventListener('click', function() {
 });
 
 /////////////////////////////////////edit////////////////////////////////////////////////
-function putModel(id) {
-    document.querySelector('#putBtn').addEventListener('click', function() {
-        editeUsersPut(id);
-        hideModal();
-    });
-}
-
 async function editeUsersPut(id) {
+
     let role = [];
     if (Array.from(document.getElementById('roles').options)
         .filter(option => option.selected)
@@ -159,41 +155,34 @@ async function editeUsersPut(id) {
         pass: document.getElementById('passwordPut').value,
         roleSet: role
     };
-    await updateUser(updatedUser);
 
-    async function updateUser(updatedUser) {
-        fetch(`/admin/update`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedUser),
+    fetch(`/admin/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedUser),
+    })
+        .then(async response => {
+            if (response.ok) {
+                await getData()
+            } else if  (response.status >= 400) {
+                const errorMessage = await response.json();
+                openModalPut();
+                document.getElementById('error').textContent = errorMessage.errorMessage;
+                console.log(JSON.stringify(errorMessage));
+            } else {
+                console.error('Ошибка создания пользователя');
+            }
+
         })
-            .then(async response => {
-                if (response.ok) {
-                    console.log('Пользователь обновлен');
-                    const response = await fetch('/admin/AllUsersRest');
-                    const data = await response.json();
-                    await allUser(data); // Обновить данные на фронтенде
-                } else if  (response.status >= 400) {
-                    const errorMessage = await response.json();
-                    openModalPut();
-                    document.getElementById('error').textContent = errorMessage.errorMessage;
-                    console.log(JSON.stringify(errorMessage));
-                } else {
-                    console.error('Ошибка создания пользователя');
-                }
-
-            })
-            .catch(error => {
-                console.error(error);
-            });
-
-    }
+        .catch(error => {
+            console.error(error);
+    });
 }
 async function editeUsersPutServer(id) {
     const putBtn = document.getElementById('putBtn');
     putBtn.addEventListener('click', async (event) => {
         event.preventDefault();
-        editeUsersPut(id);
+        await editeUsersPut(id);
         closeModalPut();
     });
 }
@@ -223,7 +212,7 @@ function deleteStatus(id){
     const deleteBtn = document.getElementById('deleteBtn');
     deleteBtn.addEventListener('click', async (event) => {
         event.preventDefault();
-        deleteUser(id);
+        await deleteUser(id);
         closeModal();
     });
 }

@@ -34,7 +34,7 @@ public class  User {
     private String pass;
 
     @ManyToMany
-    @JoinTable(name = "users_roles")
+    @JoinTable(name = "userss_roless")
     private Set<Role> roleSet = new HashSet<>();
 
     public User() {
