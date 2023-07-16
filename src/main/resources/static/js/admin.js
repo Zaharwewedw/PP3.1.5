@@ -1,11 +1,7 @@
 async function getData() {
 
     try {
-        const response = await fetch('/admin/AllUsersRest', {
-            headers: {
-                'Cache-Control': 'no-cache',
-            },
-        });
+        const response = await fetch('/admin/AllUsersRest');
         const data = await response.json();
         document.getElementById('email').textContent = data[data.length - 1].email;
         document.getElementById('role').textContent = await rolesUser(data[data.length - 1]);
@@ -83,8 +79,15 @@ function openModalPut() {
 const closeButtonPut = document.getElementById("closeButtonPut");
 closeButtonPut.addEventListener("click", closeModalPut);
 
+function userEmpty(){document.getElementById('errorEmail').textContent = "";
+    document.getElementById('errorAge').textContent =  "";
+    document.getElementById('errorName').textContent =  "";
+    document.getElementById('errorUsername').textContent =  "";
+    document.getElementById('errorPassword').textContent =  "";}
+
 function closeModalPut() {
     const modal = document.querySelector("#myModalPut");
+    userEmpty();
     modal.style.display = "none";
 }
 
@@ -93,6 +96,7 @@ let closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
 closeButtons.forEach(function(button) {
     button.addEventListener("click", function() {
         let modal = button.closest(".modal");
+        userEmpty();
         modal.style.display = "none";
     });
 });
@@ -127,6 +131,7 @@ closeButton.addEventListener("click", closeModal);
 
 function closeModal() {
     const modal = document.querySelector("#myModal");
+    userEmpty();
     modal.style.display = "none";
 }
 /////////////////////////////////////logout//////////////////////////////////////////////
@@ -166,9 +171,8 @@ async function editeUsersPut(id) {
                 await getData()
             } else if  (response.status >= 400) {
                 const errorMessage = await response.json();
+                errorFieldUserPut(errorMessage);
                 openModalPut();
-                document.getElementById('error').textContent = errorMessage.errorMessage;
-                console.log(JSON.stringify(errorMessage));
             } else {
                 console.error('Ошибка создания пользователя');
             }
@@ -177,6 +181,13 @@ async function editeUsersPut(id) {
         .catch(error => {
             console.error(error);
     });
+}
+function errorFieldUserPut(error) {
+    document.getElementById('errorEmail').textContent = error.errorMessage.email;
+    document.getElementById('errorAge').textContent = error.errorMessage.age;
+    document.getElementById('errorName').textContent = error.errorMessage.name;
+    document.getElementById('errorUsername').textContent = error.errorMessage.username;
+    document.getElementById('errorPassword').textContent = error.errorMessage.password;
 }
 async function editeUsersPutServer(id) {
     const putBtn = document.getElementById('putBtn');

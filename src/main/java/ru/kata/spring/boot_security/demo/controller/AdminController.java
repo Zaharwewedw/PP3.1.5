@@ -21,7 +21,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/admin")
@@ -30,7 +33,6 @@ public class AdminController {
     private final UserRegistration userRegistration;
     private final UserValidator userValidator;
     private final UserService userService;
-    private byte cnt = 0;
     private final UserDetailsServerImpl userDetailsServer;
 
     @Autowired
@@ -59,51 +61,31 @@ public class AdminController {
     @PutMapping("/update")
     public ResponseEntity<?> updatePage(@Valid @RequestBody User user, BindingResult result) {
 
-
-        User user1 = new User();
-        System.out.println("-----------------------------------------------------------------");
-        System.out.println(user.getId() + ") name : " + user.getName() + ", email : " + user.getEmail() +
-                ", username : " + user.getUsername() + ", age : " + user.getAge() + ", pass : " + user.getPass());
-        try {
-            user1 = user;
-        } catch (Exception e) {
-
-        }
-
         userValidator.validate(user, result);
 
         if (result.hasErrors()) {
-            StringBuilder errorMessage = new StringBuilder();
-            int cnt = 1;
+            Map<String, String> returnError = new HashMap<>();
             for (ObjectError error : result.getAllErrors()) {
-                errorMessage.append(cnt).append(") ").append(error.getDefaultMessage()).append("; ");
-                cnt++;
+                String[] resGetError = Objects.requireNonNull(error.getDefaultMessage()).split(":");
+                returnError.put(resGetError[0], resGetError[1]);
             }
 
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
-                    .body(new ErrorResponse(errorMessage.toString()));
+                    .body(new ErrorResponse(returnError));
         }
-        if (cnt == 0) {
-            cnt++;
-            System.out.println(user.getId());
-            System.out.println("1-----------------------------------------------------------------");
-            User existingUser = userService.getByIdUser(user.getId());
-            System.out.println(user.getId());
-            System.out.println("2-----------------------------------------------------------------");
-            existingUser.setAge(user.getAge());
-            existingUser.setEmail(user.getEmail());
-            existingUser.setPass(user.getPass());
-            existingUser.setUsername(user.getUsername());
-            existingUser.setName(user.getName());
+        User existingUser = userService.getByIdUser(user.getId());
+        existingUser.setAge(user.getAge());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setPass(user.getPass());
+        existingUser.setUsername(user.getUsername());
+        existingUser.setName(user.getName());
 
-            Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
-            existingUser.getRoleSet().clear();
-            existingUser.addRole(role);
+        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+        existingUser.getRoleSet().clear();
+        existingUser.addRole(role);
 
-            userService.upDateUser(existingUser);
-            cnt = 0;
-        }
+        userService.upDateUser(existingUser);
         return ResponseEntity.ok("Пользователь успешно обновлен");
     }
 
@@ -134,10 +116,12 @@ public class AdminController {
         User user1 = new User();
 
         try {
+            Map<String, String> returnError = new HashMap<>();
             userDetailsServer.loadUserByUsername(user.getUsername());
+            returnError.put("username","Такой пользыватель существует");
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse("Такой пользыватель уже зарегестрирован"));
+                    .body(new ErrorResponse(returnError));
         } catch (UsernameNotFoundException ignored) {
         }
         try {
@@ -155,16 +139,15 @@ public class AdminController {
 
         } catch (ConstraintViolationException e) {
 
-            StringBuilder errorMessage = new StringBuilder();
-            int cnt = 1;
+            Map<String, String> returnError = new HashMap<>();
             for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
-                errorMessage.append(cnt).append(") ").append(violation.getMessage()).append("; ");
-                cnt++;
+                String[] resGetError = Objects.requireNonNull(violation.getMessage()).split(":");
+                returnError.put(resGetError[0], resGetError[1]);
             }
 
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(errorMessage.toString()));
+                    .body(new ErrorResponse(returnError));
         }
     }
 }

@@ -1,18 +1,19 @@
 package ru.kata.spring.boot_security.demo.errors_controles;
 
+import java.util.Map;
+
 public class ErrorResponse {
+    private Map<String, String>  errorMessage;
 
-    private String errorMessage;
-
-    public ErrorResponse(String errorMessage) {
+    public ErrorResponse(Map<String, String> errorMessage) {
         this.errorMessage = errorMessage;
     }
 
-    public String getErrorMessage() {
+    public Map<String, String>  getErrorMessage() {
         return errorMessage;
     }
 
-    public void setErrorMessage(String errorMessage) {
+    public void setErrorMessage(Map<String, String>  errorMessage) {
         this.errorMessage = errorMessage;
     }
 }

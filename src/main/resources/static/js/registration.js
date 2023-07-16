@@ -71,7 +71,7 @@ async function userPost() {
                 } else {
                     if (response.status >= 400) {
                         const errorMessage = await response.json();
-                        document.getElementById('error').textContent = errorMessage.errorMessage;
+                        errorFieldUserPut(errorMessage)
                         console.log(JSON.stringify(errorMessage));
                     } else {
                         console.error('Ошибка создания пользователя');
@@ -82,7 +82,8 @@ async function userPost() {
                 console.error(error);
             });
     }
-    }
+}
+
 const putBtn = document.getElementById('putBtn');
 putBtn.addEventListener('click', async (event) => {
     event.preventDefault();
@@ -91,5 +92,13 @@ putBtn.addEventListener('click', async (event) => {
 
 function redirectToNewPage() {
     window.location.replace("/admin/AllUsers");
+}
+
+function errorFieldUserPut(error) {
+    document.getElementById('errorEmail').textContent = error.errorMessage.email;
+    document.getElementById('errorAge').textContent = error.errorMessage.age;
+    document.getElementById('errorName').textContent = error.errorMessage.name;
+    document.getElementById('errorUsername').textContent = error.errorMessage.username;
+    document.getElementById('errorPassword').textContent = error.errorMessage.password;
 }
 document.addEventListener("DOMContentLoaded", registration);

@@ -49,19 +49,24 @@
                 <form align="center" class="offset-md-4 col-md-3 mt-4 mb-4">
                   <label for="namePost"><b>Name</b></label>
                   <input name="name" type="text" class="form-control" id="namePost" required/>
+                  <div id="errorName" style="color: red"></div>
                   <br>
                   <label for="surnamePost"><b>Surname</b></label>
                   <input name="username" type="text" class="form-control" id="surnamePost" required/>
+                  <div id="errorUsername" style="color: red"></div>
                   <br>
                   <label for="agePost"><b>Age</b></label>
                   <input name="age" type="number" class="form-control" id="agePost" required placeholder="Введите возраст" />
+                  <div id="errorAge" style="color: red"></div>
                   <br>
                   <label for="emailPost"><b>Email</b></label>
                   <input name="email" type="text" class="form-control" id="emailPost" required/>
+                  <div id="errorEmail" style="color: red"></div>
                   <br>
                   <label for="passwordPost"><b>Password</b></label>
                   <input name="pass"  type="password" class="form-control"
                          id="passwordPost"/>
+                  <div id="errorPassword" style="color: red"></div>
                   <br>
                   <label for="rolesPost"><b>Role</b></label>
                   <select multiple class="form-control form-control-sm" id="rolesPost" name="roleSet" required="required">

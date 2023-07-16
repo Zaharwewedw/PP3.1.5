@@ -40,6 +40,7 @@ public class UserController {
         this.id = id;
         return "users/profile";
     }
+
     @ResponseBody
     @GetMapping()
     public ResponseEntity<Map<String, User>> userPage(Principal principal) {
