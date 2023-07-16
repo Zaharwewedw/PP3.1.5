@@ -1,93 +1,170 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+import ru.kata.spring.boot_security.demo.dao.RepositoryRole;
+import ru.kata.spring.boot_security.demo.errors_controles.ErrorResponse;
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserDetailsServerImpl;
 import ru.kata.spring.boot_security.demo.service.UserRegistration;
 import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.util.UserValidator;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
-
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+    private final RepositoryRole repositoryRole;
     private final UserRegistration userRegistration;
     private final UserValidator userValidator;
-    private UserService userService;
+    private final UserService userService;
+    private byte cnt = 0;
     private final UserDetailsServerImpl userDetailsServer;
 
     @Autowired
-    public AdminController(UserRegistration userRegistration, UserValidator userValidator, UserDetailsServerImpl userDetailsServer) {
+    public AdminController(RepositoryRole repositoryRole, UserRegistration userRegistration, UserValidator userValidator, UserService userService, UserDetailsServerImpl userDetailsServer) {
+        this.repositoryRole = repositoryRole;
         this.userRegistration = userRegistration;
         this.userValidator = userValidator;
+        this.userService = userService;
         this.userDetailsServer = userDetailsServer;
     }
-
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    @GetMapping(value = "/AllUsers")
+    public String allUsers() {
+        return "admin/AllUsers";
     }
 
-    @GetMapping(value = "/AllUsers")
-    public ModelAndView allUsers(Principal principal) {
+    @ResponseBody
+    @GetMapping(value = "/AllUsersRest")
+    public ResponseEntity<List<User>> allUsers(Principal principal) {
         User userPrincipal = userDetailsServer.getUserPrincipalByUsername(principal.getName());
         List<User> users = userService.getAllUsers();
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("admin/AllUsers");
-        modelAndView.addObject("users", users)
-                .addObject("Email", userPrincipal.getEmail())
-                .addObject("Roles", userPrincipal.toStringHeader());
-        return modelAndView;
+        users.add(userPrincipal);
+
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+    @ResponseBody
+    @PutMapping("/update")
+    public ResponseEntity<?> updatePage(@Valid @RequestBody User user, BindingResult result) {
+
+
+        User user1 = new User();
+        System.out.println("-----------------------------------------------------------------");
+        System.out.println(user.getId() + ") name : " + user.getName() + ", email : " + user.getEmail() +
+                ", username : " + user.getUsername() + ", age : " + user.getAge() + ", pass : " + user.getPass());
+        try {
+            user1 = user;
+        } catch (Exception e) {
+
+        }
+
+        userValidator.validate(user, result);
+
+        if (result.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder();
+            int cnt = 1;
+            for (ObjectError error : result.getAllErrors()) {
+                errorMessage.append(cnt).append(") ").append(error.getDefaultMessage()).append("; ");
+                cnt++;
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(new ErrorResponse(errorMessage.toString()));
+        }
+        if (cnt == 0) {
+            cnt++;
+            System.out.println(user.getId());
+            System.out.println("1-----------------------------------------------------------------");
+            User existingUser = userService.getByIdUser(user.getId());
+            System.out.println(user.getId());
+            System.out.println("2-----------------------------------------------------------------");
+            existingUser.setAge(user.getAge());
+            existingUser.setEmail(user.getEmail());
+            existingUser.setPass(user.getPass());
+            existingUser.setUsername(user.getUsername());
+            existingUser.setName(user.getName());
+
+            Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+            existingUser.getRoleSet().clear();
+            existingUser.addRole(role);
+
+            userService.upDateUser(existingUser);
+            cnt = 0;
+        }
+        return ResponseEntity.ok("Пользователь успешно обновлен");
     }
 
-    @PutMapping("/update/{id}")
-    public String updatePage(@ModelAttribute @Valid User user,
-                                   BindingResult bindingResult) {
-        if (bindingResult.hasErrors())
-            return "admin/AllUsers";
-
-        userService.upDateUser(user);
-
-        return "redirect:/admin/AllUsers";
-    }
-
+    @ResponseBody
     @DeleteMapping("/delete/{id}")
-    public String deleteUser(@PathVariable long id) {
+    public ResponseEntity<String> deleteUser(@PathVariable long id) {
         userService.deleteUser(id);
-        return "redirect:/admin/AllUsers";
+        return ResponseEntity.ok("Пользователь успешно удален");
     }
 
     @GetMapping("/registration")
-    public String registrationNewUser(@ModelAttribute("user") User user,
-                                      Model model,
-                                      Principal principal) {
-
-        User userPrincipal = userDetailsServer.getUserPrincipalByUsername(principal.getName());
-        model.addAttribute("Email", userPrincipal.getEmail());
-        model.addAttribute("Roles", userPrincipal.toStringHeader());
-
+    public String registrationNewUser(){
         return "/admin/registration";
     }
 
+    @ResponseBody
+    @GetMapping("/registrationRest")
+    public ResponseEntity<User> registrationNewUser(Principal principal) {
+        User userPrincipal = userDetailsServer.getUserPrincipalByUsername(principal.getName());
+        return new ResponseEntity<>(userPrincipal, HttpStatus.OK);
+    }
+
+
     @PostMapping("/registration")
-    public String performRegistrationNewUser(@ModelAttribute("user") @Valid User user,
+    public ResponseEntity<?> performRegistrationNewUser(@Valid @RequestBody User user,
                                              BindingResult bindingResult) {
         userValidator.validate(user, bindingResult);
+        User user1 = new User();
 
-        if (bindingResult.hasErrors())
-            return "/admin/registration";
+        try {
+            userDetailsServer.loadUserByUsername(user.getUsername());
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Такой пользыватель уже зарегестрирован"));
+        } catch (UsernameNotFoundException ignored) {
+        }
+        try {
+            user1.setAge(user.getAge());
+            user1.setEmail(user.getEmail());
+            user1.setPass(user.getPass());
+            user1.setUsername(user.getUsername());
+            user1.setName(user.getName());
 
-        userRegistration.register(user);
+            Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+            user1.getRoleSet().clear();
+            user1.addRole(role);
+            userRegistration.register(user1);
+            return ResponseEntity.ok("Пользователь успешно создан");
 
-        return "redirect:/admin/AllUsers";
+        } catch (ConstraintViolationException e) {
+
+            StringBuilder errorMessage = new StringBuilder();
+            int cnt = 1;
+            for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
+                errorMessage.append(cnt).append(") ").append(violation.getMessage()).append("; ");
+                cnt++;
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(errorMessage.toString()));
+        }
     }
 }

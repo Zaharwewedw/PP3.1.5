@@ -1,32 +1,29 @@
 package ru.kata.spring.boot_security.demo.security;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.kata.spring.boot_security.demo.dao.RepositoryUser;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
+
 
 public class UserDetailsImp implements UserDetails {
     private final User user;
+    private final RepositoryUser repositoryUser;
 
-    public UserDetailsImp(User user) {
+    public UserDetailsImp(User user, RepositoryUser repositoryUser) {
         this.user = user;
+        this.repositoryUser = repositoryUser;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Set<Role> roles = user.getRoleSet();
-        String roleUser = "ROLE_USER";
-        for (Role role : roles) {
-            if (role.getAuthority().equals("ROLE_ADMIN")) {
-                return Collections.singletonList(new SimpleGrantedAuthority(role.getAuthority()));
-            }
-        }
-        return Collections.singletonList(new SimpleGrantedAuthority(roleUser));
+
+        Optional<User> optionalUser = repositoryUser.findByUsernameWithRoles(user.getUsername());
+        Set<Role> roles = optionalUser.map(User::getRoleSet).orElse(new HashSet<>());
+        return new ArrayList<>(roles);
     }
 
     @Override
@@ -36,7 +33,7 @@ public class UserDetailsImp implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.user.getUsNa();
+        return this.user.getUsername();
     }
 
     @Override

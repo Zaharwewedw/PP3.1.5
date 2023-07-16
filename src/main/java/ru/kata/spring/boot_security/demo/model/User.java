@@ -1,9 +1,14 @@
 package ru.kata.spring.boot_security.demo.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Pattern;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table
@@ -13,7 +18,7 @@ public class  User {
     private String name;
     @Min(value = 14, message = "Access to persons under 14 years of age is prohibited")
     @Max(value = 150, message = "The age is too great")
-    private int age;
+    private Integer age;
     @Email(message = "The email does not meet the requirements")
     @NotEmpty(message = "The email cannot be empty")
     private String email;
@@ -22,45 +27,49 @@ public class  User {
     private Long id;
 
     @Pattern(regexp = "^[a-z0-9_-]{3,15}$", message = "Invalid username")
-    private String usNa;
+    private String username;
 
 
     @Size(min = 4, message = "The allowed password characters are at least 4")
     private String pass;
 
-    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    @JoinTable(name = "users_roles")
+    @ManyToMany
+    @JoinTable(name = "userss_roless")
     private Set<Role> roleSet = new HashSet<>();
 
     public User() {
 
     }
 
-    public User(String name, int age, String email, Set<Role> roleSet) {
+    public User(String name, int age, String email, Set<Role> roleSet, String pass, String username) {
         this.name = name;
         this.age = age;
         this.email = email;
         this.roleSet = roleSet;
+        this.pass = pass;
+        this.username = username;
+    }
+
+
+
+    public Set<Role> getRoleSet() {
+        return roleSet;
     }
 
     public void setRoleSet(Set<Role> roleSet) {
         this.roleSet = roleSet;
     }
 
-    public Set<Role> getRoleSet() {
-        return roleSet;
+    public void addRole(Role role) {
+        this.roleSet.add(role);
     }
 
-    public void setRoleSet(Role roleSet) {
-        this.roleSet.add(roleSet);
+    public String getUsername() {
+        return username;
     }
 
-    public String getUsNa() {
-        return usNa;
-    }
-
-    public void setUsNa(String usNa) {
-        this.usNa = usNa;
+    public void setUsername(String usNa) {
+        this.username = usNa;
     }
 
     public String getPass() {
@@ -103,19 +112,6 @@ public class  User {
         return this.id;
     }
 
-    public String toStringHeader() {
-        List<String> roleNames = roleSet.stream().map(a -> {
-            if (a.getRoleUser().equals("ROLE_ADMIN")) {
-                return "ADMIN";
-            }  else {
-                return "USER";
-            }
-        }
-        ).sorted().collect(Collectors.toList());
-        String rolesString = String.join(", ", roleNames);
-        return String.format("%s.", rolesString);
-    }
-
     public String getAdmin() {
         String dost = "NO ACTIVE";
         for (Role role : getRoleSet()) {
@@ -132,4 +128,5 @@ public class  User {
                 "  age = " + age +
                 "  email = " + email + "   ";
     }
+
 }

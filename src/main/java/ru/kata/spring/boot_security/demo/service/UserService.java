@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import org.springframework.http.ResponseEntity;
 import ru.kata.spring.boot_security.demo.model.User;
 
 import java.util.List;
