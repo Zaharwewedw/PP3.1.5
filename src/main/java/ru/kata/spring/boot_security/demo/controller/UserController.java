@@ -29,7 +29,9 @@ public class UserController {
     private final UserDetailsServerImpl userDetailsServer;
 
     @Autowired
-    public UserController(UserDetailsServerImpl userRegistration, UserServiceImp userServiceImp, UserDetailsServerImpl userDetailsServer) {
+    public UserController(UserDetailsServerImpl userRegistration,
+                          UserServiceImp userServiceImp,
+                          UserDetailsServerImpl userDetailsServer) {
         this.userRegistration = userRegistration;
         this.userServiceImp = userServiceImp;
         this.userDetailsServer = userDetailsServer;

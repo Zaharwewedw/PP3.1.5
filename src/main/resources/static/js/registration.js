@@ -94,11 +94,17 @@ function redirectToNewPage() {
     window.location.replace("/admin/AllUsers");
 }
 
-function errorFieldUserPut(error) {
-    document.getElementById('errorEmail').textContent = error.errorMessage.email;
-    document.getElementById('errorAge').textContent = error.errorMessage.age;
-    document.getElementById('errorName').textContent = error.errorMessage.name;
-    document.getElementById('errorUsername').textContent = error.errorMessage.username;
-    document.getElementById('errorPassword').textContent = error.errorMessage.password;
+function errorFieldUserPut(err) {
+    for (let i = 0; i < err.length; i++) {
+        let a = err[i].split(":");
+        switch (a[0]) {
+            case "email" :  document.getElementById('errorEmail').textContent = a[1]; break;
+            case "age" :  document.getElementById('errorAge').textContent = a[1]; break;
+            case "name" :  document.getElementById('errorName').textContent = a[1]; break;
+            case "username" :  document.getElementById('errorUsername').textContent = a[1]; break;
+            case "password" :  document.getElementById('errorPassword').textContent = a[1]; break;
+        }
+    }
 }
+
 document.addEventListener("DOMContentLoaded", registration);

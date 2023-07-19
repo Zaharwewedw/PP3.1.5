@@ -6,7 +6,11 @@ import ru.kata.spring.boot_security.demo.dao.RepositoryUser;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
 
 public class UserDetailsImp implements UserDetails {

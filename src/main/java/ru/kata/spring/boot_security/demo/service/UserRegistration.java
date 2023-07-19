@@ -44,21 +44,27 @@ public class UserRegistration {
 
     @Transactional
     public void register(User user) {
-        System.out.println(user.getName() + " " + user.getPass() + " " + user.getUsername()
-                + " " + user.getRoleSet() + " " + user.getAge()+ " " + user.getEmail());
-        Role role = null;
-        if (!user.getRoleSet().isEmpty()) {
-            String authority = user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse("");
-            role = repositoryRole.findByRoleUser(authority);
-        }
+
+        User user1 = new User();
+        user1.setAge(user.getAge());
+        user1.setEmail(user.getEmail());
+        user1.setPass(user.getPass());
+        user1.setUsername(user.getUsername());
+        user1.setName(user.getName());
+
+        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
+        user1.getRoleSet().clear();
+        user1.addRole(role);
+
 
         if (role == null) {
-            role = new Role("ROLE_USER"); // Создаем новый объект "Role"
-            repositoryRole.save(role); // Сохраняем его в базе данных
+            role = new Role("ROLE_USER");
+            repositoryRole.save(role);
         }
 
-        user.addRole(role);
-        user.setPass(passwordEncoder.encode(user.getPass()));
-        repositoryUser.save(user);
+        user1.addRole(role);
+        user1.setPass(passwordEncoder.encode(user1.getPass()));
+        repositoryUser.save(user1);
+
     }
 }

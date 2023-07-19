@@ -3,41 +3,36 @@ package ru.kata.spring.boot_security.demo.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import ru.kata.spring.boot_security.demo.dao.RepositoryRole;
-import ru.kata.spring.boot_security.demo.errors_controles.ErrorResponse;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserDetailsServerImpl;
 import ru.kata.spring.boot_security.demo.service.UserRegistration;
 import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.util.UserValidator;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
-public class AdminController {
-    private final RepositoryRole repositoryRole;
+public class AdminController { ;
     private final UserRegistration userRegistration;
     private final UserValidator userValidator;
     private final UserService userService;
     private final UserDetailsServerImpl userDetailsServer;
 
     @Autowired
-    public AdminController(RepositoryRole repositoryRole, UserRegistration userRegistration, UserValidator userValidator, UserService userService, UserDetailsServerImpl userDetailsServer) {
-        this.repositoryRole = repositoryRole;
+    public AdminController(UserRegistration userRegistration,
+                           UserValidator userValidator,
+                           UserService userService,
+                           UserDetailsServerImpl userDetailsServer) {
         this.userRegistration = userRegistration;
         this.userValidator = userValidator;
         this.userService = userService;
@@ -64,28 +59,14 @@ public class AdminController {
         userValidator.validate(user, result);
 
         if (result.hasErrors()) {
-            Map<String, String> returnError = new HashMap<>();
-            for (ObjectError error : result.getAllErrors()) {
-                String[] resGetError = Objects.requireNonNull(error.getDefaultMessage()).split(":");
-                returnError.put(resGetError[0], resGetError[1]);
-            }
+            List<String> errors = result.getAllErrors().stream()
+                    .map(err -> err instanceof FieldError ? ((FieldError) err).getField() + ":"
+                                    + err.getDefaultMessage() : err.getDefaultMessage()).collect(Collectors.toList());
 
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(new ErrorResponse(returnError));
+            return ResponseEntity.badRequest().body(errors);
         }
-        User existingUser = userService.getByIdUser(user.getId());
-        existingUser.setAge(user.getAge());
-        existingUser.setEmail(user.getEmail());
-        existingUser.setPass(user.getPass());
-        existingUser.setUsername(user.getUsername());
-        existingUser.setName(user.getName());
 
-        Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
-        existingUser.getRoleSet().clear();
-        existingUser.addRole(role);
-
-        userService.upDateUser(existingUser);
+        userService.upDateUser(user);
         return ResponseEntity.ok("Пользователь успешно обновлен");
     }
 
@@ -109,45 +90,27 @@ public class AdminController {
     }
 
 
+
     @PostMapping("/registration")
     public ResponseEntity<?> performRegistrationNewUser(@Valid @RequestBody User user,
-                                             BindingResult bindingResult) {
-        userValidator.validate(user, bindingResult);
-        User user1 = new User();
+                                                        BindingResult result) {
+        userValidator.validate(user, result);
 
         try {
-            Map<String, String> returnError = new HashMap<>();
-            userDetailsServer.loadUserByUsername(user.getUsername());
-            returnError.put("username","Такой пользыватель существует");
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(returnError));
-        } catch (UsernameNotFoundException ignored) {
+            userDetailsServer.getUserByUsernameController(user.getUsername());
+            return ResponseEntity.badRequest().body(new
+                    ArrayList<>(Collections.singleton("username:такой пользыватель зарегестрирован")));
+        } catch (Exception ignoring) {}
+
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors().stream()
+                    .map(err -> err instanceof FieldError ? ((FieldError) err).getField() + ":"
+                            + err.getDefaultMessage() : err.getDefaultMessage()).collect(Collectors.toList());
+
+            return ResponseEntity.badRequest().body(errors);
         }
-        try {
-            user1.setAge(user.getAge());
-            user1.setEmail(user.getEmail());
-            user1.setPass(user.getPass());
-            user1.setUsername(user.getUsername());
-            user1.setName(user.getName());
 
-            Role role = repositoryRole.findByRoleUser(user.getRoleSet().stream().map(Role::getAuthority).findFirst().orElse(""));
-            user1.getRoleSet().clear();
-            user1.addRole(role);
-            userRegistration.register(user1);
-            return ResponseEntity.ok("Пользователь успешно создан");
-
-        } catch (ConstraintViolationException e) {
-
-            Map<String, String> returnError = new HashMap<>();
-            for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
-                String[] resGetError = Objects.requireNonNull(violation.getMessage()).split(":");
-                returnError.put(resGetError[0], resGetError[1]);
-            }
-
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(returnError));
-        }
+        userRegistration.register(user);
+        return ResponseEntity.ok("Пользователь успешно обновлен");
     }
 }

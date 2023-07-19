@@ -1,6 +1,12 @@
 package ru.kata.spring.boot_security.demo.model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Table;
+import javax.persistence.ManyToMany;
+import javax.persistence.JoinTable;
+import javax.persistence.Id;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
@@ -13,24 +19,24 @@ import java.util.Set;
 @Entity
 @Table
 public class  User {
-    @NotEmpty(message = "name:The name cannot be empty")
-    @Size(min = 2, max = 15, message = "name:The name must consist of less than 2 and no more than 15 characters")
+    @NotEmpty(message = "The name cannot be empty")
+    @Size(min = 2, max = 15, message = "The name must consist of less than 2 and no more than 15 characters")
     private String name;
-    @Min(value = 14, message = "age:Access to persons under 14 years of age is prohibited")
-    @Max(value = 150, message = "age:The age is too great")
+    @Min(value = 14, message = "Access to persons under 14 years of age is prohibited")
+    @Max(value = 150, message = "The age is too great")
     private Integer age;
-    @Email(message = "email:The email does not meet the requirements")
-    @NotEmpty(message = "email:The email cannot be empty")
+    @Email(message = "The email does not meet the requirements")
+    @NotEmpty(message = "The email cannot be empty")
     private String email;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Pattern(regexp = "^[a-z0-9_-]{3,15}$", message = "username:Invalid username")
+    @Pattern(regexp = "^[a-z0-9_-]{3,15}$", message = "Invalid username")
     private String username;
 
 
-    @Size(min = 4, message = "password:The allowed password characters are at least 4")
+    @Size(min = 4, message = "The allowed password characters are at least 4")
     private String pass;
 
     @ManyToMany

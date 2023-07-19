@@ -1,5 +1,5 @@
-async function getData() {
 
+async function getData() {
     try {
         const response = await fetch('/admin/AllUsersRest');
         const data = await response.json();
@@ -25,44 +25,60 @@ let rolesUser = async function (user) {
     return `${rolesString}.`;
 }
 
+let updateButtonHandlers = [];
+let deleteButtonHandlers = [];
+
 async function allUser(users) {
+    updateButtonHandlers.forEach(handler => {
+        handler.button.removeEventListener("click", handler.eventHandler);
+    });
+    deleteButtonHandlers.forEach(handler => {
+        handler.button.removeEventListener("click", handler.eventHandler);
+    });
 
-    let el = document.getElementById('users');
+    updateButtonHandlers = [];
+    deleteButtonHandlers = [];
+
+    const el = document.getElementById('users');
     let st = "";
-    for (let i = 0; i < users.length - 1; i++ ) {
-        let deleteButtonId = `deleteButton${users[i].id}`;
-        let editButtonId = `editButton${users[i].id}`;
+    for (let i = 0; i < users.length - 1; i++) {
+        const deleteButtonId = `deleteButton${users[i].id}`;
+        const editButtonId = `editButton${users[i].id}`;
         st += `
-            <tr>
-                <td>${users[i].id}</td>
-                <td>${users[i].name}</td>
-                <td>${users[i].username}</td>
-                <td>${users[i].age}</td>
-                <td>${users[i].email}</td>
-                <td>${await rolesUser(users[i])}</td>
-                <td>
-                   <button id="${editButtonId}" type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" onclick="usersHtmlPut('${users[i].name}', '${users[i].username}', '${users[i].age}', '${users[i].email}', '${users[i].pass}'); editeUsersPutServer('${users[i].id}')">Edit</button>
-                </td>
-                <td>
-                    <button id="${deleteButtonId}" type="button" class="btn btn-sm btn-danger" onclick="usersHtml('${users[i].id}', '${users[i].name}', '${users[i].username}', '${users[i].age}', '${users[i].email}'); deleteStatus('${users[i].id}');">Delete</button>
-                </td>
-            </tr>`;
-        el.innerHTML = st;
-
+      <tr>
+        <td>${users[i].id}</td>
+        <td>${users[i].name}</td>
+        <td>${users[i].username}</td>
+        <td>${users[i].age}</td>
+        <td>${users[i].email}</td>
+        <td>${await rolesUser(users[i])}</td>
+        <td>
+          <button id="${editButtonId}" type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" onclick="usersHtmlPut('${users[i].name}', '${users[i].username}', '${users[i].age}', '${users[i].email}', '${users[i].pass}'); editeUsersPutServer('${users[i].id}')">Edit</button>
+        </td>
+        <td>
+          <button id="${deleteButtonId}" type="button" class="btn btn-sm btn-danger" onclick="usersHtml('${users[i].id}', '${users[i].name}', '${users[i].username}', '${users[i].age}', '${users[i].email}'); deleteStatus('${users[i].id}')">Delete</button>
+        </td>
+      </tr>`;
     }
+    el.innerHTML = st;
 
-    for (let i = 0; i < users.length - 1; i++ ) {
-        let updateButtonId = `editButton${users[i].id}`;
+    for (let i = 0; i < users.length - 1; i++) {
+        const updateButtonId = `editButton${users[i].id}`;
         const updateButton = document.getElementById(updateButtonId);
-        updateButton.addEventListener("click", () =>  {openModalPut()});
+        const updateEventHandler = openModalPut.bind(null, users[i].id);
+        updateButton.addEventListener("click", updateEventHandler);
+
+        updateButtonHandlers.push({ button: updateButton, eventHandler: updateEventHandler });
     }
 
-    for (let i = 0; i < users.length - 1; i++ ) {
-        let deleteButtonId = `deleteButton${users[i].id}`;
+    for (let i = 0; i < users.length - 1; i++) {
+        const deleteButtonId = `deleteButton${users[i].id}`;
         const deleteButton = document.getElementById(deleteButtonId);
-        deleteButton.addEventListener("click", openModal);
-    }
+        const deleteEventHandler = openModal.bind(null, users[i].id);
+        deleteButton.addEventListener("click", deleteEventHandler);
 
+        deleteButtonHandlers.push({ button: deleteButton, eventHandler: deleteEventHandler });
+    }
 }
 ////////////////////////////////model edit windows open//////////////////////////////////
 function usersHtmlPut(name, username, age, email, pass) {
@@ -141,7 +157,10 @@ document.querySelector('.btn').addEventListener('click', function() {
 
 /////////////////////////////////////edit////////////////////////////////////////////////
 async function editeUsersPut(id) {
-
+    console.log(id);
+    let cnt = 0;
+    console.log(cnt);
+    cnt++;
     let role = [];
     if (Array.from(document.getElementById('roles').options)
         .filter(option => option.selected)
@@ -151,7 +170,7 @@ async function editeUsersPut(id) {
         role.push("ROLE_USER");
     }
 
-    const updatedUser = {
+    let updatedUser = {
         id: id,
         name: document.getElementById('namePut').value,
         username: document.getElementById('surnamePut').value,
@@ -160,7 +179,7 @@ async function editeUsersPut(id) {
         pass: document.getElementById('passwordPut').value,
         roleSet: role
     };
-
+    console.log(updatedUser);
     fetch(`/admin/update`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -168,26 +187,31 @@ async function editeUsersPut(id) {
     })
         .then(async response => {
             if (response.ok) {
-                await getData()
-            } else if  (response.status >= 400) {
+                await getData();
+            } else if (response.status >= 400) {
                 const errorMessage = await response.json();
                 errorFieldUserPut(errorMessage);
                 openModalPut();
             } else {
                 console.error('Ошибка создания пользователя');
             }
-
         })
         .catch(error => {
             console.error(error);
-    });
+        });
 }
-function errorFieldUserPut(error) {
-    document.getElementById('errorEmail').textContent = error.errorMessage.email;
-    document.getElementById('errorAge').textContent = error.errorMessage.age;
-    document.getElementById('errorName').textContent = error.errorMessage.name;
-    document.getElementById('errorUsername').textContent = error.errorMessage.username;
-    document.getElementById('errorPassword').textContent = error.errorMessage.password;
+
+function errorFieldUserPut(err) {
+    for (let i = 0; i < err.length; i++) {
+        let a = err[i].split(":");
+        switch (a[0]) {
+            case "email" :  document.getElementById('errorEmail').textContent = a[1]; break;
+            case "age" :  document.getElementById('errorAge').textContent = a[1]; break;
+            case "name" :  document.getElementById('errorName').textContent = a[1]; break;
+            case "username" :  document.getElementById('errorUsername').textContent = a[1]; break;
+            case "password" :  document.getElementById('errorPassword').textContent = a[1]; break;
+        }
+    }
 }
 async function editeUsersPutServer(id) {
     const putBtn = document.getElementById('putBtn');
